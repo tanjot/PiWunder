@@ -37,7 +37,8 @@ def plot(meter_readings):
     readings = list(meter_readings.values())
     print(dates, '\n', readings)
     matdates = matplotlib.dates.date2num(dates)
-    plt.plot_date(matdates, readings, label="Foo")
+    plt.clf()
+    plt.plot_date(matdates, readings, 'g-o', label="Foo")
     plt.show()
 
 
