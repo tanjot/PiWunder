@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
         series.setColor(0xFF56B7F1);
 
         for (Date key : data.keySet()) {
-            series.addPoint(new ValueLinePoint("" + key.getDate(), data.get(key)));
-            mBarChart.addBar(new BarModel(data.get(key), 0xFF123456));
+            series.addPoint(new ValueLinePoint("" + key.getDate(), data.get(key) - 10000));
+            mBarChart.addBar(new BarModel(data.get(key) - 10000, 0xFF123456));
         }
 
         mCubicValueLineChart.addSeries(series);
