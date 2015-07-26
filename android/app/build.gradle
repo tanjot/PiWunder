@@ -36,7 +36,7 @@ dependencies {
     compile 'com.android.support:support-v4:22.2.1'
     compile 'com.android.support:appcompat-v7:22.2.1'
 
-    compile 'com.github.blackfizz:eazegraph:1.2.5l@aar'
+    compile 'com.github.blackfizz:eazegraph:1.2.2@aar'
     compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.code.gson:gson:2.3'
 }

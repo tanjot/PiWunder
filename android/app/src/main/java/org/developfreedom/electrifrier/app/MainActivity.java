@@ -6,7 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import org.eazegraph.lib.charts.BarChart;
 import org.eazegraph.lib.charts.ValueLineChart;
+import org.eazegraph.lib.models.BarModel;
 import org.eazegraph.lib.models.ValueLinePoint;
 import org.eazegraph.lib.models.ValueLineSeries;
 
@@ -54,16 +56,20 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
     private void createGraph(HashMap<Date, Float> data) {
         //headers = {'X-Access-Token': ACCESS_TOKEN, 'X-Client-ID': CLIENT_ID}
         ValueLineChart mCubicValueLineChart = (ValueLineChart) findViewById(R.id.cubiclinechart);
+        BarChart mBarChart = (BarChart) findViewById(R.id.barchart);
+
 
         ValueLineSeries series = new ValueLineSeries();
         series.setColor(0xFF56B7F1);
 
         for (Date key : data.keySet()) {
-            series.addPoint(new ValueLinePoint(key.toString(), data.get(key)));
+            series.addPoint(new ValueLinePoint("" + key.getDate(), data.get(key)));
+            mBarChart.addBar(new BarModel(data.get(key), 0xFF123456));
         }
 
         mCubicValueLineChart.addSeries(series);
         mCubicValueLineChart.startAnimation();
+        mBarChart.startAnimation();
     }
 
     private HashMap<Date, Float> getData(String response) {
