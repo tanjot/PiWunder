@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.*;
 import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import org.eazegraph.lib.charts.ValueLineChart;
 import org.eazegraph.lib.models.ValueLinePoint;
 import org.eazegraph.lib.models.ValueLineSeries;
@@ -70,16 +71,15 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
         Gson gson = new Gson();
         List list = gson.fromJson(response, List.class);
         for (Object obj : list) {
-            if (obj instanceof HashMap) {
-                HashMap<String, Float> map = (HashMap) obj;
-                for (String key : map.keySet()) {
-                    Date date = null;
-                    try {
-                        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(key);
-                        outputMap.put(date, map.get(key));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
+            if (obj instanceof LinkedTreeMap) {
+                LinkedTreeMap map = (LinkedTreeMap) obj;
+                Float reading = Float.parseFloat(map.get("text").toString());
+                String createdAt = map.get("created_at").toString();
+                try {
+                    Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(createdAt);
+                    outputMap.put(date, reading);
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
             }
         }
