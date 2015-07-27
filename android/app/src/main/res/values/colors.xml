@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="safe">#7BCBC7</color>
+	<color name="average">#FAD368</color>
+	<color name="danger">#EC663E</color>
+
+</resources>

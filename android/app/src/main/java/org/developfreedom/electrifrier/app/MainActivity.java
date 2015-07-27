@@ -1,8 +1,11 @@
 package org.developfreedom.electrifrier.app;
 
+import android.graphics.Color;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.*;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -25,6 +28,12 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
     public static final String ISO_DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ";
     public static final String ACCESS_TOKEN = "99e0b62535a0b09d9063ec6d888a8764c582bbfd50cbf70f5210271a5959";
     public static final String CLIENT_ID = "bdcd526c482653a17732";
+    public static final String TAG = "MAIN_ACTIVITY";
+
+    public static final float Safe = 10f;
+    public static final float Average = 15f;
+    public static final float Danger = 20f;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +72,62 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
         ArrayList<Date> dataKeys = new ArrayList<>(data.keySet());
         Collections.sort(dataKeys);
 
+        float lastUnit = 0;
+        float daysUnits = 0;
+        int lastDate = 0;
+        int lastMonth = 0;
+
+        boolean firstRun = true;
+
         for (Date key : dataKeys) {
-            series.addPoint(new ValueLinePoint("" + key.getDate(), data.get(key) - 10000));
-            mBarChart.addBar(new BarModel(data.get(key) - 10000, 0xFF123456));
+            series.addPoint(new ValueLinePoint(String.format("%.2f", (float) key.getDate() + (float) key.getHours() / 24.0f), data.get(key) - 10000));
+
+            if (firstRun){
+                Log.v("Hello", "The Unit for "+key.getDate()+ " is "+data.get(key));
+                lastUnit = data.get(key);
+                lastDate = key.getDate();
+                lastMonth = key.getMonth();
+                firstRun = false;
+            }
+
+            if (lastDate < key.getDate()) {
+                float difference =  data.get(key) - lastUnit;
+                int color;
+                if (difference > Danger) {
+                    color = getResources().getColor(R.color.danger);
+                }
+                else if (difference > Average) {
+                    color = getResources().getColor(R.color.average);
+                }
+                else {
+                    color = getResources().getColor(R.color.safe);
+                }
+                mBarChart.addBar(new BarModel(lastDate+"/"+lastMonth, data.get(key) - lastUnit, color ));
+                lastDate = key.getDate();
+                lastMonth = key.getMonth();
+                lastUnit = data.get(key);
+                daysUnits = 0;
+            } else {
+                daysUnits = data.get(key) -  lastUnit ;
+            }
+            Log.v(TAG, "Data for date " + key.getDate() + " is "+ data.get(key));
         }
+
+        if (daysUnits != 0) {
+            Log.v(TAG, "Days Unit for today is " + daysUnits);
+            int color;
+            if (daysUnits > Danger) {
+                color = getResources().getColor(R.color.danger);
+            }
+            else if (daysUnits > Average) {
+                color = getResources().getColor(R.color.average);
+            }
+            else {
+                color = getResources().getColor(R.color.safe);
+            }
+            mBarChart.addBar(new BarModel(String.valueOf(lastDate)+"/"+dataKeys.get(dataKeys.size()-1).getMonth(),daysUnits, color));
+        }
+
 
         mCubicValueLineChart.addSeries(series);
         mCubicValueLineChart.startAnimation();
