@@ -16,9 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 
 public class MainActivity extends AppCompatActivity implements GetResponseHandler {
@@ -62,7 +60,10 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
         ValueLineSeries series = new ValueLineSeries();
         series.setColor(0xFF56B7F1);
 
-        for (Date key : data.keySet()) {
+        ArrayList<Date> dataKeys = new ArrayList<>(data.keySet());
+        Collections.sort(dataKeys);
+
+        for (Date key : dataKeys) {
             series.addPoint(new ValueLinePoint("" + key.getDate(), data.get(key) - 10000));
             mBarChart.addBar(new BarModel(data.get(key) - 10000, 0xFF123456));
         }
