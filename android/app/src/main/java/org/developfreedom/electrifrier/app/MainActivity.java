@@ -1,8 +1,13 @@
 package org.developfreedom.electrifrier.app;
 
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Path;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -10,6 +15,7 @@ import android.view.*;
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
+import com.googlecode.tesseract.android.TessBaseAPI;
 import io.fabric.sdk.android.Fabric;
 import org.eazegraph.lib.charts.BarChart;
 import org.eazegraph.lib.charts.ValueLineChart;
@@ -17,11 +23,13 @@ import org.eazegraph.lib.models.BarModel;
 import org.eazegraph.lib.models.ValueLinePoint;
 import org.eazegraph.lib.models.ValueLineSeries;
 
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.FileHandler;
 
 
 public class MainActivity extends AppCompatActivity implements GetResponseHandler {
@@ -35,6 +43,11 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
     public static final float Safe = 10f;
     public static final float Average = 15f;
     public static final float Danger = 20f;
+
+    private String mDirPath = null;
+    private Uri mOutputUri = null;
+    private static final String lang = "eng";
+    private String mPath = null;
 
 
     @Override
@@ -55,6 +68,56 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+        mDirPath = Utils.getDataPath();
+        mPath = mDirPath + File.separator + "text.png";
+        Log.i(TAG, "mDirPath : " + mDirPath + " mPath: " + mPath);
+
+
+        if (!(new File(mDirPath + File.separator + "tessdata" + File.separator + lang + ".traineddata")).exists()) {
+            try {
+                AssetManager assetManager = getAssets();
+                InputStream in = assetManager.open("tessdata" + File.separator + lang + ".traineddata");
+                OutputStream out = new FileOutputStream(mDirPath + File.separator + "tessdata" + File.separator + lang + ".traineddata");
+                byte[] buf = new byte[8024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+                out.close();
+
+            }
+            catch (IOException e) {
+                Log.e(TAG, e.toString());
+            }
+        }
+
+        magic();
+    }
+
+
+    private void magic () {
+        TessBaseAPI baseApi = new TessBaseAPI();
+        // DATA_PATH = Path to the storage
+        // lang = for which the language data exists, usually "eng"
+
+        baseApi.init(mDirPath, lang);
+        // Eg. baseApi.init("/mnt/sdcard/tesseract/tessdata/eng.traineddata",
+        // "eng");
+        InputStream bitmap= null;
+        try {
+            bitmap = getAssets().open("text.png");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Bitmap bit= BitmapFactory.decodeStream(bitmap);
+        baseApi.setImage(bit);
+
+        String recognizedText = baseApi.getUTF8Text();
+        Log.v("WTF", recognizedText);
+
+        baseApi.end();
     }
 
     @Override
@@ -86,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements GetResponseHandle
             series.addPoint(new ValueLinePoint(String.format("%.2f", (float) key.getDate() + (float) key.getHours() / 24.0f), data.get(key) - 10000));
 
             if (firstRun){
-                Log.v("Hello", "The Unit for "+key.getDate()+ " is "+data.get(key));
                 lastUnit = data.get(key);
                 lastDate = key.getDate();
                 lastMonth = key.getMonth();
